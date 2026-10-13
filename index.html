@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech_By_Prince Systems</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- html2pdf for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- SheetJS for Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!--Storage factor for index db-->
+    <script src="https://unpkg.com/dexie@4/dist/dexie.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a5bbf">
+<link rel="apple-touch-icon" href="icons/icon.webp">
+
+   <link rel="stylesheet" href="system.css">
+   <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then((reg) => {
+          console.log('✅ Service Worker registered:', reg.scope);
+        })
+        .catch((err) => {
+          console.error('❌ Service Worker registration failed:', err);
+        });
+    });
+  } else {
+    console.warn('Service Workers not supported in this browser');
+  }
+</script>
+</head>
+<body>
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h1>Tech<span>By</span>Prince<span>Systems</span></h1>
+            <small id="shopNameDisplay">Kenya Edition V1.0</small>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-label">Operations</div>
+            <a class="active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                <i class="fa fa-chart-pie"></i> Dashboard
+            </a>
+            <a data-page="pos" onclick="navigateTo('pos')">
+                <i class="fa fa-cash-register"></i> POS
+            </a>
+            <div class="nav-label">Inventory</div>
+            <a data-page="products" onclick="navigateTo('products')" data-lockable="true">
+                <i class="fa fa-boxes"></i> Products
+            </a>
+            <div class="nav-label">Sales</div>
+            <a data-page="customers" onclick="navigateTo('customers')" data-lockable="true">
+                <i class="fa fa-users"></i> Customers
+            </a>
+            <a data-page="invoices" onclick="navigateTo('invoices')" data-lockable="true">
+                <i class="fa fa-file-invoice"></i> Invoices
+            </a>
+            <a data-page="expenses" onclick="navigateTo('expenses')" data-lockable="true">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Expenses
+            </a>
+            <a data-page="reports" onclick="navigateTo('reports')" data-lockable="false>
+                <i class="fa-solid fa-file-lines"></i> Reports
+            </a>
+            <div class="nav-label">System</div>
+            <a data-page="settings" onclick="navigateTo('settings')">
+                <i class="fa fa-cog"></i> Settings
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <i class="fa-regular fa-circle" style="color:#16a34a;"></i> Live
+        </div>
+    </nav>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="main-content">
+
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+                <h2 id="pageTitle">Dashboard <small>overview</small></h2>
+                <div class="date-display" id="currentDate"></div>
+            </div>
+            <div class="topbar-right">
+                                 <button class="calc-trigger-btn" onclick="openCalculator()" title="Open Calculator">
+    <i class="fa fa-calculator"></i>
+    <span class="calc-trigger-label">Calculator</span>
+</button>
+                <div class="search-box">
+                    <i class="fa fa-search"></i>
+                    <input type="text" placeholder="Search products..." id="globalSearch" onkeyup="globalSearch()">
+                </div>
+                <div class="user-badge" onclick="toggleUserMenu()">
+                    <div class="avatar" id="userAvatar">A</div>
+                    <span id="userDisplayName">Admin</span>
+                    <i class="fa fa-chevron-down" style="font-size:10px;color:#8aa3c0;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: DASHBOARD ==================== -->
+        <div class="page active" id="page-dashboard">
+            <div class="dash-grid" id="dashStats">
+                <div class="dash-card blue">
+                    <i class="icon fa fa-coins"></i>
+                    <div class="label">Today's Sales</div>
+                    <div class="value" id="dashTodaySales">KES 0</div>
+                    <div class="sub">0 transactions</div>
+                </div>
+                <div class="dash-card green">
+                    <i class="icon fa fa-users"></i>
+                    <div class="label">Customers</div>
+                    <div class="value" id="dashCustomers">0</div>
+                    <div class="sub">unique today</div>
+                </div>
+                <div class="dash-card orange">
+                    <i class="icon fa fa-shopping-cart"></i>
+                    <div class="label">Items Sold</div>
+                    <div class="value" id="dashItems">0</div>
+                    <div class="sub">today</div>
+                </div>
+                <div class="dash-card purple">
+                    <i class="icon fa fa-receipt"></i>
+                    <div class="label">Invoices</div>
+                    <div class="value" id="dashInvoices">0</div>
+                    <div class="sub">total</div>
+                </div>
+                <div class="dash-card red">
+                    <i class="icon fa fa-undo"></i>
+                    <div class="label">Revoked Sales</div>
+                    <div class="value" id="dashRevoked">0</div>
+                    <div class="sub">today</div>
+                </div>
+                <div class="dash-card orange">
+                    <i class="icon fa fa-money-bill-wave"></i>
+                    <div class="label">Expenses Today</div>
+                    <div class="value" id="dashExpenses">KES 0</div>
+                    <div class="sub">total expenses</div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px;">
+                <div class="recent-list">
+                    <div class="header">Recent Transactions <span class="text-muted" style="font-weight:400;">today</span></div>
+                    <div id="recentTransactions">
+                        <div class="item"><span class="text-muted">No transactions yet today</span></div>
+                    </div>
+                </div>
+                <div class="recent-list">
+                    <div class="header">Best Sellers</div>
+                    <div id="bestSellers">
+                        <div class="item"><span class="text-muted">No sales data yet</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-box">
+                    <h4>Sales Trend (7 days)</h4>
+                    <div class="chart-container"><canvas id="dashTrendChart"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h4>Top Products</h4>
+                    <div class="chart-container"><canvas id="dashTopChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Expense Summary -->
+            <div class="card" style="margin-top:16px;">
+                <h4><i class="fa fa-money-bill-wave"></i> Today's Expenses</h4>
+                <div class="expense-summary-grid" id="expenseSummaryGrid">
+                    <div class="expense-item-card">
+                        <div class="label">Total Expenses</div>
+                        <div class="value" id="expenseTotalToday">KES 0</div>
+                    </div>
+                    <div class="expense-item-card">
+                        <div class="label">Net Profit (after expenses)</div>
+                        <div class="value" id="expenseNetProfit">KES 0</div>
+                    </div>
+                </div>
+                <div id="expenseBreakdown" style="margin-top:8px;font-size:13px;color:#6a8aaa;"></div>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: POS ==================== -->
+        <div class="page" id="page-pos">
+            <!-- Inside page-pos, before .pos-container -->
+<div class="pos-page-header">
+    <div class="pos-page-title">
+        <i class="fa fa-cash-register"></i>
+        <span>Point of Sale</span>
+    </div>
+    <button id="cartExpandBtn" class="cart-expand-btn" onclick="toggleCartExpand()" title="Toggle focus mode (F2)">
+        <i class="fa fa-expand" id="cartExpandIcon"></i>
+        <span id="cartExpandLabel">Focus Cart</span>
+    </button>
+</div>
+            <div class="pos-container">
+                <!-- LEFT: Products -->
+                <div class="pos-left">
+                    <div class="pos-search">
+                        <i class="fa fa-search"></i>
+                        <input type="text" id="productSearch" placeholder="Search products, barcode..." oninput="filterProducts()">
+                    </div>
+                    <div class="pos-categories" id="categoryTabs">
+                        <button class="category-tab active" onclick="filterByCategory('All')">All</button>
+                        <!-- Categories will be dynamically generated -->
+                    </div>
+                    <div class="pos-products" id="productGrid">
+                        <!-- Products rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- RIGHT: Cart -->
+                <div class="pos-right">
+                    <div class="cart-customer">
+                        <i class="fa fa-user"></i>
+                        <span id="customerName">Walk in Customer</span>
+                        <button class="change-customer" onclick="changeCustomer()"><i class="fa fa-pen"></i></button>
+                    </div>
+
+                    <div class="cart-header">
+                        <span>Cart Items</span>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </div>
+
+                    <div class="cart-items" id="cartItems">
+                        <div class="empty-cart">
+                            <i class="fa fa-shopping-cart"></i>
+                            <p>Cart is empty</p>
+                            <small>Click a product to add it</small>
+                        </div>
+                    </div>
+
+                    <div class="cart-totals">
+                        <div class="total-row">
+                            <span class="total-label">Total</span>
+                            <span class="total-amount" id="cartTotal">KES 0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="payment-methods">
+                        <button class="payment-btn cash" onclick="selectPayment('Cash')"><i class="fa fa-money"></i> Cash</button>
+                        <button class="payment-btn mpesa" onclick="selectPayment('M-Pesa')"><i class="fa fa-mobile-alt"></i> M-Pesa</button>
+                        <button class="payment-btn card" onclick="selectPayment('Card')"><i class="fa fa-credit-card"></i> Card</button>
+                        <button class="payment-btn split" onclick="selectPayment('Split')"><i class="fa fa-split"></i> Split</button>
+                    </div>
+
+                    <button class="complete-sale" onclick="completeSale()">
+                        Complete Sale
+                        <span class="sale-amount" id="saleAmount">KES 0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: PRODUCTS ==================== -->
+        <div class="page" id="page-products">
+            <div class="flex-between" style="margin-bottom:16px;">
+                <h3><i class="fa fa-boxes"></i> Products</h3>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="stockSearch" placeholder="Search product..." onkeyup="filterStock()" style="padding:6px 14px;border:1px solid #dce4ee;border-radius:40px;font-size:13px;">
+                    <button class="btn btn-primary btn-sm" onclick="openAddProduct()"><i class="fa fa-plus"></i> Add Product</button>
+                </div>
+            </div>
+            <div class="dash-grid" style="margin-bottom:12px;">
+                <div class="dash-card blue"><div class="label">Total Products</div><div class="value" id="stockTotal">0</div></div>
+                <div class="dash-card orange"><div class="label">Low Stock</div><div class="value" id="stockLow">0</div></div>
+                <div class="dash-card red"><div class="label">Out of Stock</div><div class="value" id="stockOut">0</div></div>
+                <div class="dash-card green"><div class="label">Stock Value</div><div class="value" id="stockValue">KES 0</div></div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr>
+                            <th>#</th><th>Code</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody id="stockTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: CUSTOMERS ==================== -->
+        <div class="page" id="page-customers">
+            <h3><i class="fa fa-users"></i> Customers</h3>
+            <div class="dash-grid" style="margin-top:12px;">
+                <div class="dash-card blue"><div class="label">Total Customers</div><div class="value" id="totalCustomers">0</div></div>
+                <div class="dash-card green"><div class="label">Today's Customers</div><div class="value" id="todayCustomers">0</div></div>
+            </div>
+            <div class="table-wrap" style="margin-top:12px;">
+                <table>
+                    <thead><tr><th>#</th><th>Name</th><th>Total Sales</th><th>Last Purchase</th></tr></thead>
+                    <tbody id="customersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: INVOICES ==================== -->
+        <div class="page" id="page-invoices">
+            <h3><i class="fa fa-file-invoice"></i> Invoices</h3>
+            <div style="display:flex; gap:10px; margin:12px 0; flex-wrap:wrap;">
+                <button class="btn btn-danger btn-sm" onclick="openRevokeModal()"><i class="fa fa-undo"></i> Revoke Sale</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>Invoice #</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="invoicesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: EXPENSES ==================== -->
+        <div class="page" id="page-expenses">
+            <div class="flex-between" style="margin-bottom:16px;">
+                <h3><i class="fa-solid fa-file-invoice-dollar"></i> Expenses</h3>
+                <button class="btn btn-primary btn-sm" onclick="openAddExpense()"><i class="fa fa-plus"></i> Add Expense</button>
+            </div>
+            <div class="dash-grid" style="margin-bottom:12px;">
+                <div class="dash-card blue"><div class="label">Total Expenses</div><div class="value" id="expenseTotal">KES 0</div></div>
+                <div class="dash-card orange"><div class="label">Today's Expenses</div><div class="value" id="expenseToday">KES 0</div></div>
+                <div class="dash-card green"><div class="label">This Month</div><div class="value" id="expenseMonth">KES 0</div></div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>Title</th><th>Description</th><th>Type</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead>
+                    <tbody id="expensesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: REPORTS ==================== -->
+        <div class="page" id="page-reports">
+            <div class="flex-between" style="margin-bottom:16px;">
+                <h3><i class="fa-solid fa-file-lines"></i> Sales Reports</h3>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <select id="reportTimeRange" onchange="refreshReport()" style="padding:6px 14px;border:1px solid #dce4ee;border-radius:40px;font-size:13px;">
+                        <option value="1">Last 1 hour</option>
+                        <option value="3">Last 3 hours</option>
+                        <option value="6" selected>Last 6 hours</option>
+                        <option value="12">Last 12 hours</option>
+                        <option value="24">Last 24 hours</option>
+                        <option value="48">Last 48 hours</option>
+                        <option value="168">Last 7 days</option>
+                        <option value="0">All time</option>
+                    </select>
+                    <button class="btn btn-success btn-sm" onclick="downloadPDFReport()"><i class="fa fa-file-pdf"></i> PDF</button>
+                    <button class="btn btn-success btn-sm" onclick="downloadExcelReport()"><i class="fa fa-file-excel"></i> Excel</button>
+                    <button class="btn btn-primary btn-sm" onclick="refreshReport()"><i class="fa fa-rotate"></i> Refresh</button>
+                </div>
+            </div>
+            <div class="dash-grid" id="reportStats">
+                <div class="dash-card blue"><div class="label">Transactions</div><div class="value" id="reportTx">0</div></div>
+                <div class="dash-card green"><div class="label">Net Sales</div><div class="value" id="reportNet">KES 0</div></div>
+                <div class="dash-card orange"><div class="label">Gross Sales</div><div class="value" id="reportGross">KES 0</div></div>
+                <div class="dash-card purple"><div class="label">Total Discount</div><div class="value" id="reportDisc">KES 0</div></div>
+                <div class="dash-card green"><div class="label">Profit</div><div class="value" id="reportProfit">KES 0</div></div>
+                <div class="dash-card red"><div class="label">Loss</div><div class="value" id="reportLoss">KES 0</div></div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>#</th><th>Date/Time</th><th>Customer</th><th>Items</th><th>Gross</th><th>Discount</th><th>Net</th><th>Status</th></tr></thead>
+                    <tbody id="reportBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE: SETTINGS ==================== -->
+        <div class="page" id="page-settings">
+            <h3><i class="fa fa-cog"></i> Settings</h3>
+
+            <!-- Theme Settings -->
+            <div class="card" style="margin-top:12px;">
+                <h4><i class="fa fa-palette"></i> Theme</h4>
+                <div style="display:flex; gap:12px; margin-top:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="setTheme('light')"><i class="fa fa-sun"></i> Light</button>
+                    <button class="btn btn-primary btn-sm" onclick="setTheme('dark')"><i class="fa fa-moon"></i> Dark</button>
+                    <button class="btn btn-outline btn-sm" onclick="setTheme('system')"><i class="fa fa-desktop"></i> System</button>
+                </div>
+            </div>
+            <div class="card" style="margin-top:12px;">
+  <h4><i class="fa fa-database"></i> Backup & Restore</h4>
+  <p style="font-size:13px;color:#6a8aaa;">
+    Export a full backup of your data, or restore from a previous backup.
+  </p>
+  <button class="btn btn-primary" onclick="exportBackup()">
+    <i class="fa fa-download"></i> Export Backup
+  </button>
+  <button class="btn btn-warning" onclick="importBackup()">
+    <i class="fa fa-upload"></i> Import Backup
+  </button>
+</div>
+            <!-- Security Settings -->
+            <div class="card" style="margin-top:12px;">
+                <h4><i class="fa fa-shield"></i> Security</h4>
+                <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="openChangePin()"><i class="fa fa-key"></i> Change PIN</button>
+                    <button class="btn btn-warning btn-sm" onclick="openSecuritySettings()"><i class="fa fa-lock"></i> Security Settings</button>
+                    <button class="btn btn-outline btn-sm" onclick="openCreateAccount()"><i class="fa fa-user-plus"></i> Create Account</button>
+                    <button class="btn btn-outline btn-sm" onclick="openAuditLog()"><i class="fa fa-history"></i> View Audit Log</button>
+                </div>
+                <div style="margin-top:10px;font-size:13px;color:#6a8aaa;">
+                    <span id="securityStatus">Security: <span id="securityEnabledStatus">Disabled</span></span>
+                    <span style="margin-left:16px;" id="securityPinStatus">PIN: Not Set</span>
+                </div>
+            </div>
+
+            <!-- Locked Navigation -->
+            <div class="card" style="margin-top:12px;">
+                <h4><i class="fa fa-lock"></i> Locked Navigation</h4>
+                <p style="font-size:13px;color:#6a8aaa;margin:4px 0 8px;">Select which navigation menus require authentication</p>
+                <div id="lockableNavList">
+                    <!-- Dynamic -->
+                </div>
+                <div style="margin-top:10px;">
+                    <button class="btn btn-primary btn-sm" onclick="saveLockedNavs()"><i class="fa fa-save"></i> Save Lock Settings</button>
+                </div>
+            </div>
+
+            <!-- Account Info -->
+            <div class="card" style="margin-top:12px;">
+                <h4><i class="fa fa-id-card"></i> Account Information</h4>
+                <div style="font-size:13px;margin-top:8px;">
+                    <p><strong>Shop Name:</strong> <span id="settingsShopName">Not Set</span></p>
+                    <p><strong>Admin:</strong> <span id="settingsAdminName">Not Set</span></p>
+                    <p><strong>Phone:</strong> <span id="settingsPhone">Not Set</span></p>
+                    <p><strong>Location:</strong> <span id="settingslocation">Not Set </span></p>
+                    <p><strong>System ID:</strong> <span id="settingsSystemId">Not Generated</span></p>
+                    <p><strong>Recovery Key:</strong> <span id="settingsRecoveryKey">Not Generated</span></p>
+                </div>
+                <button class="btn btn-warning btn-sm" onclick="exportSystemKeys()"><i class="fa fa-download"></i> Export System Keys</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-box">
+            <h3 id="productModalTitle">Add Product</h3>
+            <input type="hidden" id="editCode">
+            <label>Code</label><input type="text" id="pCode" placeholder="e.g. PRD-001">
+            <label>Name</label><input type="text" id="pName" placeholder="Product name">
+            <label>Category</label>
+            <input type="text" id="pCategory" placeholder="Type category (auto-adds to system)" list="categoryList">
+            <datalist id="categoryList"></datalist>
+            <label>Price</label><input type="number" id="pPrice" placeholder="0.00">
+            <label>Stock</label><input type="number" id="pStock" placeholder="0">
+            <div class="btn-row">
+                <button class="cancel" onclick="closeProduct()">Cancel</button>
+                <button class="save" onclick="saveProduct()" data-shortcut="Enter">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="modal-overlay" id="notifyModal">
+        <div class="modal-box" style="max-width:380px;">
+            <h3 id="notifyTitle">Alert</h3>
+            <p id="notifyMessage" style="margin:10px 0;"></p>
+            <div class="btn-row">
+                <button class="save" onclick="closeNotify()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change PIN Modal -->
+    <div class="modal-overlay" id="pinModal">
+        <div class="modal-box">
+            <h3>Change PIN</h3>
+            <label>Current PIN</label><input type="password" id="oldPin" placeholder="Enter current PIN" maxlength="6">
+            <label>New PIN</label><input type="password" id="newPin" placeholder="Enter new PIN" maxlength="6">
+            <label>Confirm PIN</label><input type="password" id="confirmPin" placeholder="Confirm new PIN" maxlength="6">
+            <div class="btn-row">
+                <button class="cancel" onclick="closePinModal()">Cancel</button>
+                <button class="save" onclick="changePin()">Update PIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings Modal -->
+    <div class="modal-overlay" id="securityModal">
+        <div class="modal-box">
+            <h3>Security Settings</h3>
+            <div class="checkbox-group">
+                <input type="checkbox" id="securityEnabled" onchange="toggleSecurityFields()">
+                <label for="securityEnabled">Enable Security Lock</label>
+            </div>
+            <label>Security PIN</label>
+            <input type="password" id="securityPin" placeholder="Set security PIN" maxlength="6">
+            <label>Select Lock Type</label>
+            <select id="securityLockType" style="width:100%;padding:8px 14px;border:1px solid #dce4ee;border-radius:40px;font-size:13px;">
+                <option value="admin">Admin Only</option>
+                <option value="system">Whole System</option>
+            </select>
+            <label>Lock Timeout (minutes)</label>
+            <input type="number" id="securityTimeout" value="5" min="1" max="60">
+            <div class="btn-row">
+                <button class="cancel" onclick="closeSecurityModal()">Cancel</button>
+                <button class="save" onclick="saveSecuritySettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div class="modal-overlay" id="accountModal">
+        <div class="modal-box">
+            <h3>Create Account</h3>
+            <label>Shop Name</label><input type="text" id="accShopName" placeholder="Your Shop Name">
+              <label>Location</label><input type="text" id="accLocation" placeholder="Your Location">
+            <label>Admin Name</label><input type="text" id="accAdminName" placeholder="Admin Full Name">
+            <label>Cashier Name (optional)</label><input type="text" id="accCashierName" placeholder="Cashier Name">
+            <label>Phone Number</label><input type="text" id="accPhone" placeholder="Phone Number">
+            <label>Password (PIN)</label><input type="password" id="accPassword" placeholder="Set a PIN (4-6 digits)" maxlength="6">
+            <div style="font-size:12px;color:#6a8aaa;margin:6px 0;">Default role: Cashier. Admin can be promoted in settings.</div>
+            <div class="btn-row">
+                <button class="cancel" onclick="closeAccountModal()">Cancel</button>
+                <button class="save" onclick="createAccount()">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Log Modal -->
+    <div class="modal-overlay" id="auditModal">
+        <div class="modal-box" style="max-width:600px;">
+            <h3><i class="fa fa-history"></i> Audit Log</h3>
+            <div id="auditLogList" style="max-height:400px;overflow-y:auto;margin-top:10px;">
+                <div class="audit-entry"><span class="text-muted">No audit logs yet</span></div>
+            </div>
+            <div class="btn-row">
+                <button class="save" onclick="closeAuditModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="modal-box">
+            <h3>Add Expense</h3>
+            <label>Title</label><input type="text" id="expTitle" placeholder="e.g. Monthly Salary">
+            <label>Description</label><input type="text" id="expDesc" placeholder="Description">
+            <label>Type</label>
+            <input type="text" id="expType" placeholder="e.g. Salary, Wifi, Water, Electricity" list="expenseTypeList">
+            <datalist id="expenseTypeList">
+                <option value="Salary"><option value="Wifi"><option value="Water"><option value="Electricity">
+                    <option value="Rent"><option value="Maintenance"><option value="Transport"><option value="Other">
+            </datalist>
+            <label>Amount</label><input type="number" id="expAmount" placeholder="0.00">
+            <div class="btn-row">
+                <button class="cancel" onclick="closeExpenseModal()">Cancel</button>
+                <button class="save" onclick="saveExpense()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke Sale Modal -->
+    <div class="modal-overlay" id="revokeModal">
+        <div class="modal-box">
+            <h3>Revoke Sale</h3>
+            <label>Invoice Number</label>
+            <input type="text" id="revokeInvoice" placeholder="e.g. #INV-123456">
+            <div style="font-size:12px;color:#6a8aaa;margin:4px 0;">Sales can only be revoked within 2 hours of completion</div>
+            <div class="btn-row">
+                <button class="cancel" onclick="closeRevokeModal()">Cancel</button>
+                <button class="save" onclick="revokeSale()">Revoke Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Lock Overlay -->
+<div id="lockOverlay" class="lock-overlay">
+  <div class="lock-box">
+    <h3 id="lockMessage"></h3>
+
+    <!-- PIN entry -->
+    <div id="lockPinRow">
+      <input id="lockPin" type="password" inputmode="numeric" maxlength="6"
+             placeholder="••••" autocomplete="off"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();unlockNavigation();}">
+      <div id="lockError" class="lock-error"></div>
+      <div class="btn-row">
+        <button class="unlock-btn" onclick="unlockNavigation()">Unlock</button>
+          <button class="cancel" onclick="closelockOverlay()" style="border: 1px solid blue;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Recovery key -->
+    <div id="lockRecoveryRow" style="display:none;">
+      <p style="margin-top:8px;">Enter your recovery key to reset the PIN.</p>
+      <input id="lockRecoveryKey" type="text" placeholder="XXXX-XXXX-XXXX"
+             autocomplete="off" style="text-transform:uppercase; letter-spacing:2px;"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();submitRecoveryKey();}">
+      <div id="lockRecoveryError" class="lock-error"></div>
+      <div class="btn-row">
+        <button class="unlock-btn" onclick="submitRecoveryKey()">Verify Key</button>
+          <button class="cancel" onclick="closelockOverlay()" style="border: 1px solid blue;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- New PIN after recovery -->
+    <div id="lockNewPinRow" style="display:none;">
+      <p style="margin-top:8px;">Set a new PIN (4–6 digits).</p>
+      <input id="lockNewPin" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN">
+      <input id="lockNewPinConfirm" type="password" inputmode="numeric" maxlength="6"
+             placeholder="Confirm PIN" style="margin-top:8px;">
+      <div id="lockNewPinError" class="lock-error"></div>
+      <div class="btn-row">
+        <button class="unlock-btn" onclick="saveRecoveredPin()">Save New PIN</button>
+        <button class="cancel" onclick="closelockOverlay()" style="border: 1px solid blue;">Cancel</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ========== CALCULATOR MODAL ========== -->
+<div id="calcModal" class="calc-modal">
+    <div class="calc-box">
+        <!-- Header -->
+        <div class="calc-header">
+            <div class="calc-title">
+                <i class="fa fa-calculator"></i>
+                <span>Cash Calculator</span>
+            </div>
+            <button class="calc-close" onclick="closeCalculator()" title="Close (Esc)">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Mode indicator -->
+        <div class="calc-mode-bar">
+            <span id="calcModeLabel" class="calc-mode auto">AUTO — Cart Total</span>
+            <button id="calcResetBtn" class="calc-reset-btn" onclick="calcReset()" title="Back to auto mode">
+                <i class="fa fa-refresh"></i> Reset
+            </button>
+        </div>
+
+        <!-- Display -->
+        <div class="calc-display-wrap">
+            <div id="calcDisplay" class="calc-display">0</div>
+            <div id="calcSubDisplay" class="calc-sub-display"></div>
+        </div>
+
+        <!-- Cash Received + Change Due (visible in AUTO mode) -->
+        <div id="calcCashSection" class="calc-cash-section">
+            <label class="calc-label">Cash Received</label>
+            <input type="number" id="calcCashInput" class="calc-cash-input" 
+                   placeholder="0.00" min="0" step="0.01" autocomplete="off">
+            <div id="calcChangeDue" class="calc-change-due">
+                <span id="calcChangeLabel">Change Due:</span>
+                <span id="calcChangeValue">KES 0.00</span>
+            </div>
+        </div>
+
+        <!-- Keypad -->
+        <div class="calc-keypad">
+            <button class="calc-btn num" data-key="7">7</button>
+            <button class="calc-btn num" data-key="8">8</button>
+            <button class="calc-btn num" data-key="9">9</button>
+            <button class="calc-btn op" data-key="/">÷</button>
+
+            <button class="calc-btn num" data-key="4">4</button>
+            <button class="calc-btn num" data-key="5">5</button>
+            <button class="calc-btn num" data-key="6">6</button>
+            <button class="calc-btn op" data-key="*">×</button>
+
+            <button class="calc-btn num" data-key="1">1</button>
+            <button class="calc-btn num" data-key="2">2</button>
+            <button class="calc-btn num" data-key="3">3</button>
+            <button class="calc-btn op" data-key="-">−</button>
+
+            <button class="calc-btn num" data-key="0">0</button>
+            <button class="calc-btn num" data-key=".">.</button>
+            <button class="calc-btn clear" data-key="C" title="Clear (Delete key)">C</button>
+            <button class="calc-btn op" data-key="+">+</button>
+
+            <button class="calc-btn equals" data-key="=">=</button>
+            <button class="calc-btn backspace" data-key="⌫" title="Backspace">
+                <i class="fa fa-delete-left"></i>
+            </button>
+        </div>
+
+        <!-- Recent Sales History -->
+        <div class="calc-history">
+            <div class="calc-history-title">Recent Sales</div>
+            <div id="calcHistoryList" class="calc-history-list">
+                <div class="calc-history-empty">No sales yet</div>
+            </div>
+        </div>
+
+        <!-- Footer hint -->
+        <div class="calc-hint">
+            Press <kbd>Enter</kbd> to complete sale · <kbd>Delete</kbd> to clear · <kbd>Esc</kbd> to close
+        </div>
+    </div>
+</div>
+    <!-- Receipt Container -->
+    <div id="receiptContainer"></div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+   
+   <script src="keys.js"></script>
+   <script src="service.js"></script>
+   <script src="db.js"></script>
+   <script src="manifest.js"></script>
+   <script src="backup.js"></script>
+</body>
+</html>
