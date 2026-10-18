@@ -3,7 +3,7 @@
 //  Caches the app shell so it works offline.
 // ============================================================
 
-const CACHE_NAME = 'tb-pos-v1';
+const CACHE_NAME = 'tb-pos-v6';
 
 // Files that make up the "app shell" — the minimum to boot the app offline.
 const APP_SHELL = [
@@ -12,26 +12,24 @@ const APP_SHELL = [
   './manifest.json',
   './service.js',
   './db.js',
+  './backup.js',
   './keys.js',
   './system.css',
   // Icons
   './icons/icon.webp',
-  './icons/icon.webp',
-  
+
+   // Webfonts
+  './webfonts/fa-brands-400.woff2',
+  './webfonts/fa-regular-400.woff2',
+  './webfonts/fa-solid-900.woff2',
+  './webfonts/fa-v4compatibility.woff2',
+
    // Local libraries
   './dexie.min.js',
   './chart.min.js',
   './xlsx.full.min.js',
   './html2pdf.bundle.min.js',
   './font-awesome.min.css'
-  /*
-  // External libraries (CDN)
-  'https://unpkg.com/dexie@4/dist/dexie.min.js',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-  */
 ];
 
 // ---------- INSTALL ----------
