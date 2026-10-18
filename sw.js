@@ -17,12 +17,21 @@ const APP_SHELL = [
   // Icons
   './icons/icon.webp',
   './icons/icon.webp',
+  
+   // Local libraries
+  './dexie.min.js',
+  './chart.min.js',
+  './xlsx.full.min.js',
+  './html2pdf.bundle.min.js',
+  './font-awesome.min.css'
+  /*
   // External libraries (CDN)
   'https://unpkg.com/dexie@4/dist/dexie.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  */
 ];
 
 // ---------- INSTALL ----------
